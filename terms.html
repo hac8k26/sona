@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONA</title>
+    <style>
+        :root {
+            --bg: #fcfaf2;
+            --text: #1a1a1a;
+            --dim: #a0a090;
+            --accent: #ff3c00;
+            --border: #e0ddd5;
+            --panel: #f7f5ed;
+            --mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', monospace;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+        body, html {
+            height: 100vh; width: 100vw;
+            background: var(--bg); color: var(--text);
+            font-family: var(--mono); font-size: 12px;
+            overflow: hidden;
+            display: grid; grid-template-rows: 60px 1fr 60px;
+        }
+        header {
+            padding: 0 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand { font-weight: 900; font-size: 18px; text-decoration: none; color: var(--text); }
+        .label { color: var(--dim); text-transform: uppercase; font-size: 10px; margin-bottom: 12px; display: block; }
+
+        main {
+            display: grid; grid-template-columns: 1fr 400px;
+            border-bottom: 1px solid var(--border); overflow: hidden;
+        }
+
+        .primary-zone {
+            padding: 40px; border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 0; overflow-y: auto;
+        }
+        h1 { font-size: clamp(40px, 7vw, 100px); line-height: 0.8; letter-spacing: -0.07em; text-transform: uppercase; margin-bottom: 32px; }
+
+        .section { margin-bottom: 28px; }
+        .section-title { color: var(--text); text-transform: uppercase; font-size: 10px; letter-spacing: 0.1em; border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-bottom: 10px; }
+        .section p { color: var(--dim); line-height: 1.9; font-size: 11px; }
+        .section ul { color: var(--dim); line-height: 1.9; font-size: 11px; padding-left: 16px; }
+
+        .control-zone { padding: 40px; background: var(--panel); overflow-y: auto; display: flex; flex-direction: column; gap: 0; }
+        .control-block { margin-bottom: 32px; }
+
+        .toc-item {
+            display: flex; justify-content: space-between;
+            border-bottom: 1px solid var(--border); padding: 8px 0;
+            font-size: 10px; text-transform: uppercase; color: var(--dim);
+        }
+        .toc-item span:last-child { color: var(--text); }
+
+        footer {
+            padding: 0 40px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-top: 1px solid var(--border);
+        }
+
+        @media (max-width: 1000px) {
+            main { grid-template-columns: 1fr; }
+            .control-zone { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="index.html" class="brand">SONA</a>
+    <div style="color:var(--dim);font-size:10px;">LEGAL_MODULE // <span id="clock"></span></div>
+</header>
+
+<main>
+    <div class="primary-zone">
+        <span class="label">Legal_Documents</span>
+        <h1>TERMS<br>&amp; POLICY.</h1>
+
+        <div class="section">
+            <div class="section-title">01 // Acceptance of Terms</div>
+            <p>By accessing or using SONA, you agree to be bound by these Terms of Service and Privacy Policy. If you do not agree, you may not use this service. Continued use of the platform constitutes acceptance of any updates to these terms.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">02 // Service Description</div>
+            <p>SONA is an unofficial music streaming interface that accesses publicly available audio data via third-party APIs. We do not host, store, or distribute any audio content. All music is streamed directly from external sources.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">03 // User Accounts</div>
+            <ul>
+                <li>You must provide accurate information when registering.</li>
+                <li>You are responsible for maintaining the security of your account.</li>
+                <li>You must be at least 13 years of age to use this service.</li>
+                <li>We reserve the right to suspend accounts that violate these terms.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">04 // Privacy Policy</div>
+            <p>We collect only the minimum data required to operate the service — your email address and username. We do not sell, share, or monetize your personal data. Authentication is handled securely via Supabase. We do not use tracking cookies or third-party analytics.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">05 // Intellectual Property</div>
+            <p>All music content belongs to its respective rights holders. SONA does not claim ownership of any audio content. This platform is provided for personal, non-commercial use only. Downloading content may be subject to copyright laws in your jurisdiction.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">06 // Disclaimer</div>
+            <p>SONA is provided "as is" without warranties of any kind. We are not liable for any damages arising from use of this service. Third-party API availability is not guaranteed. Service may be interrupted or discontinued at any time.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">07 // Changes to Terms</div>
+            <p>We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance. Last updated: March 2026.</p>
+        </div>
+    </div>
+
+    <aside class="control-zone">
+        <div class="control-block">
+            <span class="label">Document_Index</span>
+            <div class="toc-item"><span>01</span><span>Acceptance</span></div>
+            <div class="toc-item"><span>02</span><span>Service</span></div>
+            <div class="toc-item"><span>03</span><span>Accounts</span></div>
+            <div class="toc-item"><span>04</span><span>Privacy</span></div>
+            <div class="toc-item"><span>05</span><span>IP Rights</span></div>
+            <div class="toc-item"><span>06</span><span>Disclaimer</span></div>
+            <div class="toc-item"><span>07</span><span>Changes</span></div>
+        </div>
+
+        <div class="control-block">
+            <span class="label">Data_Collected</span>
+            <div class="toc-item"><span>Email</span><span>YES</span></div>
+            <div class="toc-item"><span>Username</span><span>YES</span></div>
+            <div class="toc-item"><span>Password</span><span>HASHED</span></div>
+            <div class="toc-item"><span>Analytics</span><span style="color:var(--accent)">NO</span></div>
+            <div class="toc-item"><span>Cookies</span><span style="color:var(--accent)">NO</span></div>
+            <div class="toc-item"><span>Sold_To_3rd</span><span style="color:var(--accent)">NO</span></div>
+        </div>
+
+        <div class="control-block">
+            <span class="label">Version_Info</span>
+            <div class="toc-item"><span>Version</span><span>V1.0</span></div>
+            <div class="toc-item"><span>Updated</span><span>MAR 2026</span></div>
+            <div class="toc-item"><span>Jurisdiction</span><span>GLOBAL</span></div>
+        </div>
+    </aside>
+</main>
+
+<footer>
+    <span style="color:var(--dim);font-size:10px;text-transform:uppercase;">SONA // LEGAL_DOCS_V1.0</span>
+    <a href="index.html" style="color:var(--text);text-decoration:none;border:1px solid var(--text);padding:4px 12px;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;" onmouseover="this.style.background='var(--text)';this.style.color='var(--bg)'" onmouseout="this.style.background='transparent';this.style.color='var(--text)'">BACK TO HOME</a>
+</footer>
+
+<script>
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+</script>
+</body>
+</html>

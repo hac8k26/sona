@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONA</title>
+    <style>
+        :root {
+            --bg: #fcfaf2;
+            --text: #1a1a1a;
+            --dim: #a0a090;
+            --accent: #ff3c00;
+            --mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+
+        body, html {
+            height: 100vh; width: 100vw;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 60px 1fr 120px;
+        }
+
+        header {
+            padding: 0 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #e0ddd5;
+        }
+        .brand { font-weight: 900; font-size: 18px; }
+
+        main {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            border-bottom: 1px solid #e0ddd5;
+        }
+
+        .primary-zone {
+            padding: 40px;
+            border-right: 1px solid #e0ddd5;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        h1 { font-size: clamp(50px, 10vw, 140px); line-height: 0.8; letter-spacing: -0.07em; text-transform: uppercase; }
+
+        #heatmap {
+            display: grid;
+            grid-template-columns: repeat(32, 1fr);
+            gap: 2px; margin-top: 40px; height: 100px;
+        }
+        .cell { background: #eee; height: 100%; transition: background 0.1s; }
+
+        .control-zone { padding: 40px; background: #f7f5ed; overflow-y: auto; }
+        .control-block { margin-bottom: 40px; }
+        .label { color: var(--dim); text-transform: uppercase; font-size: 10px; margin-bottom: 15px; display: block; }
+
+        .freq-slider {
+            display: flex; justify-content: space-between; border: 1px solid var(--text); padding: 10px;
+            cursor: pointer;
+        }
+        .freq-active { background: var(--text); color: var(--bg); padding: 0 5px; }
+
+        .node-map { font-size: 10px; line-height: 1.5; color: var(--dim); }
+        .node-active { color: var(--accent); font-weight: bold; }
+
+        footer {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+        }
+        .terminal-zone {
+            padding: 20px 40px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        #cmd-input {
+            background: transparent; border: none; outline: none;
+            font-family: var(--mono); color: var(--text); width: 100%;
+        }
+        .meta-zone {
+            padding: 20px 40px; border-left: 1px solid #e0ddd5;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        @media (max-width: 1000px) {
+            main { grid-template-columns: 1fr; }
+            .control-zone { display: none; }
+        }
+
+        /* ── Consent gate ── */
+        #consent-gate {
+            display: none; position: fixed; inset: 0;
+            background: var(--bg); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        #consent-gate.show { display: flex; }
+        .consent-box {
+            border: 1px solid var(--text); padding: 48px;
+            max-width: 480px; width: 90%;
+            display: flex; flex-direction: column; gap: 24px;
+        }
+        .consent-title {
+            font-size: clamp(28px,5vw,52px); line-height: 0.85;
+            letter-spacing: -0.06em; text-transform: uppercase; font-weight: 900;
+        }
+        .consent-text { color: var(--dim); font-size: 11px; line-height: 1.8; }
+        .consent-text a { color: var(--text); text-decoration: underline; }
+        .consent-btns { display: flex; }
+        .consent-btn {
+            flex: 1; padding: 11px; text-align: center;
+            border: 1px solid var(--text); font-family: var(--mono);
+            font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+            text-decoration: none; background: transparent; color: var(--dim); cursor: crosshair;
+        }
+        .consent-btn:first-child { border-right: none; }
+        .consent-btn:first-child:hover { background: #f7f5ed; color: var(--text); }
+        .consent-btn.accept { background: var(--text); color: var(--bg); }
+        .consent-btn.accept:hover { background: var(--accent); border-color: var(--accent); }
+        .consent-note { color: var(--dim); font-size: 10px; text-align: center; }
+
+        /* ── Custom modal ── */
+        #modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(252,250,242,0.85);
+            z-index: 999; align-items: center; justify-content: center;
+        }
+        #modal-overlay.show { display: flex; }
+        #modal-box {
+            border: 1px solid var(--text); background: var(--bg);
+            padding: 40px; min-width: 320px; max-width: 440px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        #modal-label { color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+        #modal-msg   { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.6; white-space: pre-line; }
+        .modal-btns  { display: flex; }
+        .modal-btn {
+            flex: 1; padding: 10px; font-family: var(--mono); font-size: 10px;
+            text-transform: uppercase; letter-spacing: 0.1em; cursor: crosshair;
+            border: 1px solid var(--text); background: transparent; color: var(--text);
+        }
+        .modal-btn:first-child { border-right: none; }
+        .modal-btn.primary { background: var(--text); color: var(--bg); }
+        .modal-btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+        .modal-btn:not(.primary):hover { background: #f7f5ed; }
+    </style>
+</head>
+<body>
+
+<!-- Consent gate -->
+<div id="consent-gate">
+    <div class="consent-box">
+        <div>
+            <span class="label">Access_Protocol</span>
+            <div class="consent-title">SONA<br>V6.X</div>
+        </div>
+        <p class="consent-text">By entering this platform you agree to our <a href="terms.html" target="_blank">Terms of Service &amp; Privacy Policy</a>. SONA streams music via third-party APIs for personal, non-commercial use only.</p>
+        <div class="consent-btns">
+            <a href="terms.html" target="_blank" class="consent-btn">READ TERMS</a>
+            <button onclick="acceptTerms()" class="consent-btn accept">ACCEPT &amp; ENTER &gt;</button>
+        </div>
+        <p class="consent-note">SONA_LEGAL // V1.0 // MAR 2026</p>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay">
+    <div id="modal-box">
+        <span id="modal-label">System_Alert</span>
+        <div id="modal-msg"></div>
+        <div class="modal-btns">
+            <button class="modal-btn" onclick="closeModal()">DISMISS</button>
+            <button class="modal-btn primary" id="modal-action-btn"></button>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="brand">SONA</div>
+    <div style="display:flex; align-items:center; gap:30px;">
+        <div>LATENCY: 0.00ms // PKT: 0 // <span id="clock">--:--:--</span></div>
+        <a href="music.html" onclick="return guardStream(event)" style="color:var(--text); text-decoration:none; border:1px solid var(--text); padding:4px 12px; text-transform:uppercase; font-size:10px; letter-spacing:0.1em;" onmouseover="this.style.background='var(--text)';this.style.color='var(--bg)'" onmouseout="this.style.background='transparent';this.style.color='var(--text)'">STREAM</a>
+        <span id="user-info" style="display:none;align-items:center;gap:12px;">
+            <a id="user-name" href="profile.html" style="color:var(--dim);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--dim)'"></a>
+            <button onclick="signOut()" style="color:var(--text);background:transparent;border:1px solid var(--text);padding:4px 12px;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;font-family:var(--mono);cursor:crosshair;" onmouseover="this.style.background='var(--text)';this.style.color='var(--bg)'" onmouseout="this.style.background='transparent';this.style.color='var(--text)'">LOGOUT</button>
+        </span>
+        <a id="login-btn" href="auth.html" style="color:var(--text); text-decoration:none; border:1px solid var(--text); padding:4px 12px; text-transform:uppercase; font-size:10px; letter-spacing:0.1em;" onmouseover="this.style.background='var(--text)';this.style.color='var(--bg)'" onmouseout="this.style.background='transparent';this.style.color='var(--text)'">LOGIN // SIGNUP</a>
+    </div>
+</header>
+
+<main>
+    <div class="primary-zone">
+        <div>
+            <span class="label">Operational_Status</span>
+            <h1>HIGH_DENSITY<br>SONIC_PROTO.</h1>
+        </div>
+        <div>
+            <span class="label">Bit_Depth_Realtime_Heatmap</span>
+            <div id="heatmap"></div>
+        </div>
+    </div>
+
+    <aside class="control-zone">
+        <div class="control-block">
+            <span class="label">Frequency_Response_Range (Hz)</span>
+            <div class="freq-slider" onclick="logCmd('ADJUSTING_EQ_BAND...')">
+                <span>20</span><span>100</span>
+                <span class="freq-active">1.2K</span>
+                <span>5K</span><span>22K</span>
+            </div>
+        </div>
+        <div class="control-block">
+            <span class="label">Network_Topology_Path</span>
+            <div class="node-map">
+                SRC: [LOCAL_NODE]<br>
+                |___ <span class="node-active">ENCR_V3</span> (ACTIVE)<br>
+                |___ RELAY_FRANKFURT<br>
+                |___ <span class="node-active">SONA_CORE_OS</span> (ALLOCATED)<br>
+                OUT: [AES_256_GCM]
+            </div>
+        </div>
+        <div class="control-block">
+            <span class="label">System_Telemetry</span>
+            <p>VOLTAGE: 1.22V</p>
+            <p>BUFFER: 1024_SMP</p>
+            <p>JITTER: &lt; 0.0001ms</p>
+        </div>
+    </aside>
+</main>
+
+<footer>
+    <div class="terminal-zone">
+        <span>></span>
+        <input type="text" id="cmd-input" placeholder="ENTER COMMAND (e.g. 'START', 'CLEAN', 'REBOOT')" onkeydown="handleCmd(event)">
+    </div>
+    <div class="meta-zone">
+        <div style="display:flex; justify-content:space-between;">
+            <span class="label">Signal</span>
+            <span id="signal-val">99.2%</span>
+        </div>
+        <div style="height:2px; background:#eee; width:100%;">
+            <div id="signal-bar" style="height:100%; background:var(--text); width:99%;"></div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Clock
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+
+    // Heatmap
+    const heatmap = document.getElementById('heatmap');
+    for (let i = 0; i < 128; i++) {
+        const cell = document.createElement('div'); cell.className = 'cell'; heatmap.appendChild(cell);
+    }
+    const cells = document.querySelectorAll('.cell');
+    setInterval(() => {
+        cells.forEach(cell => { cell.style.background = `rgba(26,26,26,${Math.random()})`; });
+    }, 100);
+
+    // Command handler
+    function handleCmd(e) {
+        if (e.key === 'Enter') {
+            const val = e.target.value.toUpperCase();
+            logCmd(`EXECUTING_${val}...`);
+            e.target.value = '';
+            if (val === 'START') document.querySelector('h1').style.color = 'var(--accent)';
+            if (val === 'CLEAN') document.querySelector('h1').style.color = 'var(--text)';
+        }
+    }
+    function logCmd(msg) {
+        console.log(msg);
+        document.getElementById('signal-val').innerText = (Math.random() * 5 + 95).toFixed(1) + '%';
+    }
+
+    // Signal oscillation
+    setInterval(() => {
+        document.getElementById('signal-bar').style.width = (Math.random() * 10 + 90) + '%';
+    }, 500);
+
+    // ── Supabase ──
+    const _sb = supabase.createClient(
+        'https://scjigaqfgoeuaruzzajk.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjamlnYXFmZ29ldWFydXp6YWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDM5NTQsImV4cCI6MjA4OTkxOTk1NH0.JtclwpnZmWtdu4AqS0qnWRiac7T7rC6wj22udDVKxQw'
+    );
+
+    // Consent gate
+    if (!localStorage.getItem('sona_terms_accepted')) {
+        document.getElementById('consent-gate').classList.add('show');
+    }
+    function acceptTerms() {
+        localStorage.setItem('sona_terms_accepted', '1');
+        document.getElementById('consent-gate').classList.remove('show');
+    }
+
+    // Modal
+    function showModal(msg, actionLabel, actionFn) {
+        document.getElementById('modal-msg').innerText = msg;
+        var btn = document.getElementById('modal-action-btn');
+        btn.innerText = actionLabel;
+        btn.onclick = () => { closeModal(); actionFn(); };
+        document.getElementById('modal-overlay').classList.add('show');
+    }
+    function closeModal() {
+        document.getElementById('modal-overlay').classList.remove('show');
+    }
+
+    // Session — load once, then guard uses the resolved value
+    let _session = null;
+    const _sessionReady = _sb.auth.getSession().then(({ data }) => {
+        _session = data.session;
+        if (_session) {
+            const user = _session.user;
+            const name = user.user_metadata?.username || user.email.split('@')[0];
+            document.getElementById('user-name').innerText = 'NODE: ' + name.toUpperCase();
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('login-btn').style.display = 'none';
+        }
+    });
+
+    // Stream guard — waits for session check before deciding
+    function guardStream(e) {
+        e.preventDefault();
+        _sessionReady.then(() => {
+            if (_session) {
+                window.location.href = 'music.html';
+            } else {
+                sessionStorage.setItem('redirect_after_login', 'music.html');
+                showModal(
+                    'ACCESS_DENIED //\nPLEASE LOGIN TO\nENTER THE STREAM.',
+                    'GO TO LOGIN',
+                    () => window.location.href = 'auth.html'
+                );
+            }
+        });
+        return false;
+    }
+
+    // Logout
+    async function signOut() {
+        await _sb.auth.signOut();
+        _session = null;
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('login-btn').style.display = 'inline-block';
+    }
+</script>
+</body>
+</html>

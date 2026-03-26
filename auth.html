@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SONA</title>
+    <style>
+        :root {
+            --bg: #fcfaf2;
+            --text: #1a1a1a;
+            --dim: #a0a090;
+            --accent: #ff3c00;
+            --border: #e0ddd5;
+            --panel: #f7f5ed;
+            --mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+
+        body, html {
+            height: 100vh; width: 100vw;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 12px;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 60px 1fr 60px;
+        }
+
+        /* ── Header ── */
+        header {
+            padding: 0 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .brand { font-weight: 900; font-size: 18px; text-decoration: none; color: var(--text); }
+        .label { color: var(--dim); text-transform: uppercase; font-size: 10px; margin-bottom: 15px; display: block; }
+
+        /* ── Main ── */
+        main {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Left info panel */
+        .info-zone {
+            padding: 40px;
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        h1 { font-size: clamp(48px, 8vw, 120px); line-height: 0.8; letter-spacing: -0.07em; text-transform: uppercase; }
+
+        .status-grid { display: flex; flex-direction: column; gap: 0; }
+        .status-row {
+            display: flex; justify-content: space-between;
+            border-bottom: 1px solid var(--border); padding: 8px 0;
+        }
+
+        /* Right auth panel */
+        .auth-zone {
+            padding: 40px;
+            background: var(--panel);
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        .tab-row { display: flex; margin-bottom: 32px; }
+        .tab {
+            flex: 1; padding: 9px; text-align: center;
+            text-transform: uppercase; font-family: var(--mono); font-size: 10px;
+            border: 1px solid var(--text); background: transparent; color: var(--dim);
+            cursor: crosshair; letter-spacing: 0.08em;
+        }
+        .tab:first-child { border-right: none; }
+        .tab.active { background: var(--text); color: var(--bg); }
+
+        .form-panel { display: none; flex-direction: column; gap: 20px; }
+        .form-panel.active { display: flex; }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label { color: var(--dim); text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; }
+        .field input {
+            background: transparent; border: none; border-bottom: 1px solid var(--text);
+            outline: none; font-family: var(--mono); font-size: 12px; color: var(--text);
+            padding: 8px 0; width: 100%;
+        }
+        .field input:focus { border-bottom-color: var(--accent); }
+
+        .submit-btn {
+            margin-top: 8px; padding: 11px;
+            background: var(--text); color: var(--bg);
+            border: none; font-family: var(--mono); font-size: 10px;
+            text-transform: uppercase; letter-spacing: 0.1em; cursor: crosshair;
+        }
+        .submit-btn:hover { background: var(--accent); }
+
+        .form-msg { color: var(--dim); font-size: 10px; text-align: center; margin-top: 4px; }
+        .form-msg span { color: var(--text); cursor: pointer; text-decoration: underline; }
+
+        /* ── Footer ── */
+        footer {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+        }
+        .terminal-zone {
+            padding: 0 40px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .meta-zone {
+            padding: 0 40px; border-left: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        #footer-status { color: var(--dim); font-size: 10px; text-transform: uppercase; }
+
+        @media (max-width: 1000px) {
+            main { grid-template-columns: 1fr; }
+            .info-zone { display: none; }
+            footer { grid-template-columns: 1fr; }
+            .meta-zone { border: none; }
+        }
+
+        /* ── Custom modal ── */
+        #modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(252,250,242,0.85);
+            z-index: 999; align-items: center; justify-content: center;
+        }
+        #modal-overlay.show { display: flex; }
+        #modal-box {
+            border: 1px solid var(--text); background: var(--bg);
+            padding: 40px; min-width: 320px; max-width: 440px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        #modal-label { color: var(--dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+        #modal-msg   { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; line-height: 1.6; }
+        .modal-btns  { display: flex; }
+        .modal-btn {
+            flex: 1; padding: 10px; font-family: var(--mono); font-size: 10px;
+            text-transform: uppercase; letter-spacing: 0.1em; cursor: crosshair;
+            border: 1px solid var(--text); background: transparent; color: var(--text);
+        }
+        .modal-btn:first-child { border-right: none; }
+        .modal-btn.primary { background: var(--text); color: var(--bg); }
+        .modal-btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+        .modal-btn:not(.primary):hover { background: var(--panel); }
+    </style>
+</head>
+<body>
+
+<!-- Modal -->
+<div id="modal-overlay">
+    <div id="modal-box">
+        <span id="modal-label">System_Alert</span>
+        <div id="modal-msg"></div>
+        <div class="modal-btns">
+            <button class="modal-btn" onclick="closeModal()">DISMISS</button>
+            <button class="modal-btn primary" id="modal-action-btn"></button>
+        </div>
+    </div>
+</div>
+
+<header>
+    <a href="index.html" class="brand">SONA</a>
+    <div style="display:flex;align-items:center;gap:30px;">
+        <div>AUTH_MODULE // <span id="clock"></span></div>
+        <a href="music.html" onclick="return guardStream(event)" style="color:var(--text);text-decoration:none;border:1px solid var(--text);padding:4px 12px;text-transform:uppercase;font-size:10px;letter-spacing:0.1em;" onmouseover="this.style.background='var(--text)';this.style.color='var(--bg)'" onmouseout="this.style.background='transparent';this.style.color='var(--text)'">STREAM</a>
+    </div>
+</header>
+
+<main>
+    <div class="info-zone">
+        <div>
+            <span class="label">Access_Protocol</span>
+            <h1>SECURE<br>NODE<br>ENTRY.</h1>
+        </div>
+        <div class="status-grid">
+            <div class="status-row"><span class="label" style="margin:0;">Encryption</span><span>AES_256_GCM</span></div>
+            <div class="status-row"><span class="label" style="margin:0;">Auth_Layer</span><span>TOKEN_V3</span></div>
+            <div class="status-row"><span class="label" style="margin:0;">Session</span><span id="session-id">--</span></div>
+            <div class="status-row"><span class="label" style="margin:0;">Status</span><span style="color:var(--accent)">AWAITING_INPUT</span></div>
+        </div>
+    </div>
+
+    <div class="auth-zone">
+        <div class="tab-row">
+            <button class="tab active" onclick="switchTab('login')">LOGIN</button>
+            <button class="tab" onclick="switchTab('signup')">SIGNUP</button>
+        </div>
+
+        <form class="form-panel active" id="login-panel" onsubmit="handleSubmit(event,'login')">
+            <div class="field">
+                <label for="login-email">Identifier (Email)</label>
+                <input type="email" id="login-email" placeholder="user@domain.io" required autocomplete="email">
+            </div>
+            <div class="field">
+                <label for="login-pass">Auth_Key (Password)</label>
+                <input type="password" id="login-pass" placeholder="••••••••••••" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="submit-btn">AUTHENTICATE &gt;</button>
+            <p class="form-msg">No node? <span onclick="switchTab('signup')">REGISTER_NEW</span></p>
+        </form>
+
+        <form class="form-panel" id="signup-panel" onsubmit="handleSubmit(event,'signup')">
+            <div class="field">
+                <label for="signup-name">Node_Handle (Username)</label>
+                <input type="text" id="signup-name" placeholder="HANDLE_ID" required autocomplete="username">
+            </div>
+            <div class="field">
+                <label for="signup-email">Identifier (Email)</label>
+                <input type="email" id="signup-email" placeholder="user@domain.io" required autocomplete="email">
+            </div>
+            <div class="field">
+                <label for="signup-pass">Auth_Key (Password)</label>
+                <input type="password" id="signup-pass" placeholder="••••••••••••" required minlength="8" autocomplete="new-password">
+            </div>
+            <button type="submit" class="submit-btn">REGISTER_NODE &gt;</button>
+            <p class="form-msg">Already registered? <span onclick="switchTab('login')">LOGIN</span></p>
+        </form>
+    </div>
+</main>
+
+<footer>
+    <div class="terminal-zone">
+        <span class="label" style="margin:0;">SONA_AUTH // SECURE_CHANNEL</span>
+    </div>
+    <div class="meta-zone">
+        <span class="label" style="margin:0;">STATUS</span>
+        <span id="footer-status">IDLE</span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const SUPABASE_URL  = 'https://scjigaqfgoeuaruzzajk.supabase.co';
+    const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjamlnYXFmZ29ldWFydXp6YWprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDM5NTQsImV4cCI6MjA4OTkxOTk1NH0.JtclwpnZmWtdu4AqS0qnWRiac7T7rC6wj22udDVKxQw';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    document.getElementById('session-id').innerText = 'SES_' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    // redirect if already logged in
+    sb.auth.getSession().then(({ data }) => {
+        if (data.session) window.location.href = 'music.html';
+    });
+
+    function showModal(msg, actionLabel, actionFn) {
+        document.getElementById('modal-msg').innerText = msg;
+        var btn = document.getElementById('modal-action-btn');
+        btn.innerText = actionLabel;
+        btn.onclick = () => { closeModal(); actionFn(); };
+        document.getElementById('modal-overlay').classList.add('show');
+    }
+    function closeModal() {
+        document.getElementById('modal-overlay').classList.remove('show');
+    }
+    function guardStream(e) {
+        // check session async — if already logged in allow, else show modal
+        sb.auth.getSession().then(({ data }) => {
+            if (data.session) {
+                window.location.href = 'music.html';
+            } else {
+                showModal(
+                    'ACCESS_DENIED //\nPLEASE LOGIN FIRST\nTO ENTER THE STREAM.',
+                    'LOGIN NOW',
+                    () => switchTab('login')
+                );
+            }
+        });
+        e.preventDefault();
+        return false;
+    }
+
+    function setStatus(msg, color) {
+        var s = document.getElementById('footer-status');
+        s.innerText = msg;
+        s.style.color = color || 'var(--dim)';
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach((t, i) => {
+            t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'signup'));
+        });
+        document.getElementById('login-panel').classList.toggle('active', tab === 'login');
+        document.getElementById('signup-panel').classList.toggle('active', tab === 'signup');
+        setStatus('IDLE');
+    }
+
+    async function handleSubmit(e, type) {
+        e.preventDefault();
+        var btn = e.target.querySelector('.submit-btn');
+        btn.disabled = true;
+
+        if (type === 'login') {
+            setStatus('AUTHENTICATING...', 'var(--accent)');
+            var email = document.getElementById('login-email').value.trim();
+            var pass  = document.getElementById('login-pass').value;
+            var { error } = await sb.auth.signInWithPassword({ email, password: pass });
+            if (error) {
+                setStatus('ERROR: ' + error.message.toUpperCase(), 'var(--accent)');
+                btn.disabled = false;
+            } else {
+                setStatus('AUTH_SUCCESS // REDIRECTING...', 'var(--text)');
+                const dest = sessionStorage.getItem('redirect_after_login') || 'music.html';
+                sessionStorage.removeItem('redirect_after_login');
+                setTimeout(() => window.location.href = dest, 800);
+            }
+
+        } else {
+            setStatus('REGISTERING_NODE...', 'var(--accent)');
+            var name  = document.getElementById('signup-name').value.trim();
+            var email = document.getElementById('signup-email').value.trim();
+            var pass  = document.getElementById('signup-pass').value;
+            var { error } = await sb.auth.signUp({
+                email, password: pass,
+                options: {
+                    data: { username: name },
+                    emailRedirectTo: window.location.origin + '/confirmed.html'
+                }
+            });
+            if (error) {
+                setStatus('ERROR: ' + error.message.toUpperCase(), 'var(--accent)');
+                btn.disabled = false;
+            } else {
+                setStatus('NODE_REGISTERED // CHECK EMAIL TO CONFIRM', 'var(--text)');
+                btn.disabled = false;
+            }
+        }
+    }
+</script>
+</body>
+</html>
